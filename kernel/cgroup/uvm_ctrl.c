@@ -1,7 +1,6 @@
 #ifndef _LINUX_UVM_CTRL_
 #define _LINUX_UVM_CTRL_
 
-#include "linux/export.h"
 #include <linux/uvm_ctrl.h>
 
 static struct uvm_ctrl_css root_cg;
@@ -10,7 +9,6 @@ static struct uvm_ctrl_css root_cg;
 static struct cgroup_subsys_state *
 uvm_ctrl_cgroup_alloc(struct cgroup_subsys_state *parent_css)
 {
-	enum uvm_ctrl_type i;
 	struct uvm_ctrl_css *cg;
 
 	if (!parent_css) {
@@ -84,6 +82,9 @@ static ssize_t uvm_ctrl_soft_limit_write(struct kernfs_open_file *of, char *buf,
 		return -EINVAL;
 
 	cg = css_to_uvm_css(of_css(of));
+	if(new_limit > cg->res[UVM_HARD_LIMIT]) {
+		return -EINVAL;
+	}
 	WRITE_ONCE(cg->res[UVM_SOFT_LIMIT], new_limit);
 	return 0;
 }
@@ -99,6 +100,9 @@ static ssize_t uvm_ctrl_hard_limit_write(struct kernfs_open_file *of, char *buf,
 		return -EINVAL;
 
 	cg = css_to_uvm_css(of_css(of));
+	if(new_limit < cg->res[UVM_SOFT_LIMIT]) {
+		return -EINVAL;
+	}
 	WRITE_ONCE(cg->res[UVM_HARD_LIMIT], new_limit);
 	return 0;
 }

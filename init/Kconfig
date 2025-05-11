@@ -1028,7 +1028,7 @@ config BLK_CGROUP
 
 	See Documentation/admin-guide/cgroup-v1/blkio-controller.rst for more information.
 
-config CONFIG_UVM_CTRL
+config UVM_CTRL
 	bool "UVM Limits Controller"
 	default y
 	help
