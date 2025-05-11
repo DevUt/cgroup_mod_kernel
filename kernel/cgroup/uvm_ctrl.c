@@ -82,9 +82,9 @@ static ssize_t uvm_ctrl_soft_limit_write(struct kernfs_open_file *of, char *buf,
 		return -EINVAL;
 
 	cg = css_to_uvm_css(of_css(of));
-	if(new_limit > cg->res[UVM_HARD_LIMIT]) {
-		return -EINVAL;
-	}
+	// if(new_limit > cg->res[UVM_HARD_LIMIT]) {
+	// 	return -EINVAL;
+	// }
 	WRITE_ONCE(cg->res[UVM_SOFT_LIMIT], new_limit);
 	return 0;
 }
@@ -100,9 +100,9 @@ static ssize_t uvm_ctrl_hard_limit_write(struct kernfs_open_file *of, char *buf,
 		return -EINVAL;
 
 	cg = css_to_uvm_css(of_css(of));
-	if(new_limit < cg->res[UVM_SOFT_LIMIT]) {
-		return -EINVAL;
-	}
+	// if(new_limit < cg->res[UVM_SOFT_LIMIT]) {
+	// 	return -EINVAL;
+	// }
 	WRITE_ONCE(cg->res[UVM_HARD_LIMIT], new_limit);
 	return 0;
 }
