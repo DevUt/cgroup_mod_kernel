@@ -20,6 +20,8 @@ uvm_ctrl_cgroup_alloc(struct cgroup_subsys_state *parent_css)
 	}
 
 	/* Here I may want to add something to default init it idk */
+	cg->res[UVM_SOFT_LIMIT] = 200;
+	cg->res[UVM_HARD_LIMIT] = 600;
 	return &cg->css;
 }
 
