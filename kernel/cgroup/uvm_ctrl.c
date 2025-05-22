@@ -80,15 +80,19 @@ static ssize_t uvm_ctrl_soft_limit_write(struct kernfs_open_file *of, char *buf,
 	buf = strstrip(buf);
 	u64 new_limit;
 	int ret;
+	if(nbytes == 0)
+		return 0;
+
+	if(nbytes >= 21) // 20 digits should be enough
+		return -EINVAL;
+
+	buf[nbytes - 1] = '\0';
 	if((ret = kstrtoull(buf, 10, &new_limit)) < 0)
 		return -EINVAL;
 
 	cg = css_to_uvm_css(of_css(of));
-	// if(new_limit > cg->res[UVM_HARD_LIMIT]) {
-	// 	return -EINVAL;
-	// }
 	WRITE_ONCE(cg->res[UVM_SOFT_LIMIT], new_limit);
-	return 0;
+	return nbytes;
 }
 
 
@@ -98,15 +102,19 @@ static ssize_t uvm_ctrl_hard_limit_write(struct kernfs_open_file *of, char *buf,
 	buf = strstrip(buf);
 	u64 new_limit;
 	int ret;
+	if(nbytes == 0)
+		return 0;
+
+	if(nbytes >= 21)
+		return -EINVAL;
+
+	buf[nbytes - 1] = '\0';
 	if((ret = kstrtoull(buf, 10, &new_limit)) < 0)
 		return -EINVAL;
 
 	cg = css_to_uvm_css(of_css(of));
-	// if(new_limit < cg->res[UVM_SOFT_LIMIT]) {
-	// 	return -EINVAL;
-	// }
 	WRITE_ONCE(cg->res[UVM_HARD_LIMIT], new_limit);
-	return 0;
+	return nbytes;
 }
 
 static int uvm_ctrl_hard_limit_show(struct seq_file *sf, void *args){
