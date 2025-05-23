@@ -24,7 +24,24 @@ enum uvm_ctrl_callback_type {
 	UVM_EXIT_TASK,
 };
 
-static void (*uvm_ctrl_callback_func)(enum uvm_ctrl_callback_type type) = NULL;
+static u64 DEFAULT_SOFT_LIMIT = 1ULL << 30;
+static u64 DEFAULT_HARD_LIMIT = 2ULL << 30;
+
+struct uvm_ctrl_callback_info {
+	// css pointer for new css or deleting css
+	// I can also do id here
+	struct cgroup_subsys_state *css;
+
+	// new soft limit
+	int soft_limit;
+
+	// new hard limit
+	int hard_limit;
+
+	enum uvm_ctrl_callback_type type;
+};
+
+static void (*uvm_ctrl_callback_func)(struct uvm_ctrl_callback_info) = NULL;
 static spinlock_t callback_spin_lock;
 static bool lock_initialized = false;
 
@@ -37,7 +54,7 @@ static struct list_head missed_creations_list;
 static spinlock_t missed_cl_lock;
 struct list_head *uvm_ctrl_get_missed_css_unlocked(void);
 
-void uvm_ctrl_register_callback(void (*func)(enum uvm_ctrl_callback_type));
+void uvm_ctrl_register_callback(void (*func)(struct uvm_ctrl_callback_info));
 void uvm_ctrl_unregister_callback(void);
 
 struct uvm_ctrl_css {

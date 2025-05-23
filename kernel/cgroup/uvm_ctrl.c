@@ -47,12 +47,12 @@ uvm_ctrl_cgroup_alloc(struct cgroup_subsys_state *parent_css)
 	// 	pr_warn("Callaback not found alloc css!\n");
 	// }
 	// unlock_after_call();
-	cg->res[UVM_SOFT_LIMIT] = 200;
-	cg->res[UVM_HARD_LIMIT] = 600;
+	cg->res[UVM_SOFT_LIMIT] = DEFAULT_SOFT_LIMIT;
+	cg->res[UVM_HARD_LIMIT] = DEFAULT_HARD_LIMIT;
 	return &cg->css;
 }
 
-void uvm_ctrl_register_callback(void (*func)(enum uvm_ctrl_callback_type))
+void uvm_ctrl_register_callback(void (*func)(struct uvm_ctrl_callback_info))
 {
 	uvm_ctrl_callback_func = func;
 	pr_info("Registered func\n");
@@ -149,7 +149,11 @@ static ssize_t uvm_ctrl_soft_limit_write(struct kernfs_open_file *of, char *buf,
 	lock_before_call();
 	if (uvm_ctrl_callback_func != NULL) {
 		pr_info("Callback to new soft limit\n");
-		(*uvm_ctrl_callback_func)(UVM_SOFT_LIMIT_CHANGED);
+		struct uvm_ctrl_callback_info callback_info;
+		callback_info.type = UVM_SOFT_LIMIT_CHANGED;
+		callback_info.css = of_css(of);
+		callback_info.soft_limit = new_limit;
+		(*uvm_ctrl_callback_func)(callback_info);
 	} else {
 		pr_warn("Callaback not found new soft limit!\n");
 	}
@@ -180,7 +184,11 @@ static ssize_t uvm_ctrl_hard_limit_write(struct kernfs_open_file *of, char *buf,
 	lock_before_call();
 	if (uvm_ctrl_callback_func != NULL) {
 		pr_info("Callback to old task dead\n");
-		(*uvm_ctrl_callback_func)(UVM_HARD_LIMIT_CHANGED);
+		struct uvm_ctrl_callback_info callback_info;
+		callback_info.type = UVM_HARD_LIMIT_CHANGED;
+		callback_info.css = of_css(of);
+		callback_info.soft_limit = new_limit;
+		(*uvm_ctrl_callback_func)(callback_info);
 	} else {
 		pr_warn("Callaback not found old task dead!\n");
 	}
@@ -224,7 +232,10 @@ static void css_dead(struct cgroup_subsys_state *css)
 	lock_before_call();
 	if (uvm_ctrl_callback_func != NULL) {
 		pr_info("Css died\n");
-		(*uvm_ctrl_callback_func)(UVM_CSS_GONE);
+		struct uvm_ctrl_callback_info callback_info;
+		callback_info.type = UVM_CSS_GONE;
+		callback_info.css = css; 
+		(*uvm_ctrl_callback_func)(callback_info);
 	} else {
 		pr_warn("callback for dead css not available\n");
 		unsigned long deadFlags;
@@ -248,7 +259,10 @@ static int css_ready(struct cgroup_subsys_state *css)
 	lock_before_call();
 	if (uvm_ctrl_callback_func != NULL) {
 		pr_info("Css ALIVE\n");
-		(*uvm_ctrl_callback_func)(UVM_NEW_CSS);
+		struct uvm_ctrl_callback_info callback_info;
+		callback_info.type = UVM_NEW_CSS;
+		callback_info.css = css; 
+		(*uvm_ctrl_callback_func)(callback_info);
 	} else {
 		pr_warn("callback for new css not available\n");
 		unsigned long readyFlags;
